@@ -3,7 +3,11 @@ from botocore.exceptions import ClientError
 
 ENV_NAME = "polystudent-vpc-py"
 REGION = "us-east-1"
+ROLE_NAME = "LabRole"
+S3_BUCKET_FOR_FLOWLOGS = "polystudent3-py"
+
 ec2 = boto3.client('ec2', region_name=REGION)
+iam = boto3.client('iam')
 
 def wait_for_nat(nat_ids):
     ec2.get_waiter('nat_gateway_available').wait(NatGatewayIds=nat_ids)
@@ -106,5 +110,22 @@ rules = [
 ]
 
 ec2.authorize_security_group_ingress(GroupId=sg_id, IpPermissions=rules)
+
+# Partie de la question 3
+# =======================
+print(vpc_id)
+
+vpc_id = "vpc-0991753fb9cb56685"
+
+response = ec2.create_flow_logs(
+    ResourceType='VPC',
+    ResourceIds=[vpc_id],
+    TrafficType='REJECT',
+    LogDestinationType='s3',
+    LogDestination=f"arn:aws:s3:::{S3_BUCKET_FOR_FLOWLOGS}/vpc-flow-logs/"
+)
+
+print(response)
+# =======================
 
 print("DEPLOYMENT COMPLETE")
