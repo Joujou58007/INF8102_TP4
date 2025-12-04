@@ -1,0 +1,703 @@
+---
+Metadata:
+  AWSToolsMetrics:
+    IaC_Generator: "arn:aws:cloudformation:us-east-1:514390778516:generatedTemplate/b76ac05f-81eb-44f1-9296-d647142e55c4"
+Resources:
+  EC2FlowLog:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::FlowLog"
+    DeletionPolicy: "Retain"
+    Properties:
+      LogFormat: "${version} ${account-id} ${interface-id} ${srcaddr} ${dstaddr} ${srcport}\
+        \ ${dstport} ${protocol} ${packets} ${bytes} ${start} ${end} ${action} ${log-status}"
+      ResourceId:
+        Ref: "EC2VPC"
+      MaxAggregationInterval: 600
+      DestinationOptions:
+        FileFormat: "plain-text"
+        PerHourPartition: false
+        HiveCompatiblePartitions: false
+      ResourceType: "VPC"
+      LogDestination: "arn:aws:s3:::polystudent3-py-lab4-try2/vpc-flow-logs/"
+      LogDestinationType: "s3"
+      Tags: []
+      TrafficType: "REJECT"
+  Route53ResolverResolverRuleAssociation:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::Route53Resolver::ResolverRuleAssociation"
+    DeletionPolicy: "Retain"
+    Properties:
+      VPCId:
+        Ref: "EC2VPC"
+      ResolverRuleId: "rslvr-autodefined-rr-internet-resolver"
+      Name: "System Rule Association"
+  EC2SubnetJh:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::Subnet"
+    DeletionPolicy: "Retain"
+    Properties:
+      MapPublicIpOnLaunch: false
+      EnableDns64: false
+      VpcId:
+        Ref: "EC2VPC"
+      AvailabilityZoneId: "use1-az1"
+      PrivateDnsNameOptionsOnLaunch:
+        EnableResourceNameDnsARecord: false
+        HostnameType: "ip-name"
+        EnableResourceNameDnsAAAARecord: false
+      CidrBlock: "10.0.128.0/24"
+      Ipv6Native: false
+      Tags:
+      - Value: "polystudent-vpc-py Private Subnet (AZ1)"
+        Key: "Name"
+  EC2SubnetNetworkAclAssociationQ5:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::SubnetNetworkAclAssociation"
+    DeletionPolicy: "Retain"
+    Properties:
+      NetworkAclId:
+        Ref: "EC2NetworkAcl"
+      SubnetId:
+        Ref: "EC2SubnetC4"
+  EC2EIP3423887149:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::EIP"
+    DeletionPolicy: "Retain"
+    Properties:
+      PublicIpv4Pool: "amazon"
+      Domain: "vpc"
+      Tags: []
+      NetworkBorderGroup: "us-east-1"
+  EC2Subnet:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::Subnet"
+    DeletionPolicy: "Retain"
+    Properties:
+      MapPublicIpOnLaunch: true
+      EnableDns64: false
+      VpcId:
+        Ref: "EC2VPC"
+      AvailabilityZoneId: "use1-az1"
+      PrivateDnsNameOptionsOnLaunch:
+        EnableResourceNameDnsARecord: false
+        HostnameType: "ip-name"
+        EnableResourceNameDnsAAAARecord: false
+      CidrBlock: "10.0.0.0/24"
+      Ipv6Native: false
+      Tags:
+      - Value: "polystudent-vpc-py Public Subnet (AZ1)"
+        Key: "Name"
+  EC2SecurityGroup:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::SecurityGroup"
+    DeletionPolicy: "Retain"
+    Properties:
+      GroupDescription: "default VPC security group"
+      GroupName: "default"
+      VpcId:
+        Ref: "EC2VPC"
+      SecurityGroupIngress:
+      - IpProtocol: "-1"
+        FromPort: -1
+        SourceSecurityGroupId:
+          Fn::GetAtt:
+          - "EC2VPC"
+          - "DefaultSecurityGroup"
+        ToPort: -1
+        SourceSecurityGroupOwnerId: "514390778516"
+      SecurityGroupEgress:
+      - CidrIp: "0.0.0.0/0"
+        IpProtocol: "-1"
+        FromPort: -1
+        ToPort: -1
+  EC2RouteJk:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::Route"
+    DeletionPolicy: "Retain"
+    Properties:
+      RouteTableId:
+        Ref: "EC2RouteTable"
+      DestinationCidrBlock:
+        Fn::GetAtt:
+        - "EC2VPC"
+        - "CidrBlock"
+      GatewayId: "local"
+      VpcEndpointId: "local"
+  EC2SubnetNetworkAclAssociation:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::SubnetNetworkAclAssociation"
+    DeletionPolicy: "Retain"
+    Properties:
+      NetworkAclId:
+        Ref: "EC2NetworkAcl"
+      SubnetId:
+        Ref: "EC2SubnetSm"
+  EC2SubnetC4:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::Subnet"
+    DeletionPolicy: "Retain"
+    Properties:
+      MapPublicIpOnLaunch: false
+      EnableDns64: false
+      VpcId:
+        Ref: "EC2VPC"
+      AvailabilityZoneId: "use1-az2"
+      PrivateDnsNameOptionsOnLaunch:
+        EnableResourceNameDnsARecord: false
+        HostnameType: "ip-name"
+        EnableResourceNameDnsAAAARecord: false
+      CidrBlock: "10.0.144.0/24"
+      Ipv6Native: false
+      Tags:
+      - Value: "polystudent-vpc-py Private Subnet (AZ2)"
+        Key: "Name"
+  EC2RouteTableBA:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::RouteTable"
+    DeletionPolicy: "Retain"
+    Properties:
+      VpcId:
+        Ref: "EC2VPC"
+      Tags:
+      - Value: "polystudent-vpc-py Public Routes"
+        Key: "Name"
+  EC2NatGateway:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::NatGateway"
+    DeletionPolicy: "Retain"
+    Properties:
+      PrivateIpAddress: "10.0.16.22"
+      SubnetId:
+        Ref: "EC2SubnetSm"
+      ConnectivityType: "public"
+      VpcId: "vpc-0332b1503520157e4"
+      Tags: []
+      AllocationId:
+        Fn::GetAtt:
+        - "EC2EIP3419433244"
+        - "AllocationId"
+  EC2SubnetRouteTableAssociationBb:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    DeletionPolicy: "Retain"
+    Properties:
+      RouteTableId:
+        Ref: "EC2RouteTableBA"
+      SubnetId:
+        Ref: "EC2Subnet"
+  EC2SecurityGroupHV:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::SecurityGroup"
+    DeletionPolicy: "Retain"
+    Properties:
+      GroupDescription: "Security group allows SSH, HTTP, HTTPS, MSSQL, etc..."
+      GroupName: "polystudent-sg"
+      VpcId:
+        Ref: "EC2VPC"
+      SecurityGroupIngress:
+      - CidrIp: "0.0.0.0/0"
+        IpProtocol: "tcp"
+        Description: "port"
+        FromPort: 1433
+        ToPort: 1433
+      - CidrIp: "0.0.0.0/0"
+        IpProtocol: "tcp"
+        Description: "port"
+        FromPort: 80
+        ToPort: 80
+      - CidrIp: "0.0.0.0/0"
+        IpProtocol: "tcp"
+        Description: "port"
+        FromPort: 5432
+        ToPort: 5432
+      - CidrIp: "0.0.0.0/0"
+        IpProtocol: "udp"
+        Description: "port"
+        FromPort: 1514
+        ToPort: 1514
+      - CidrIp: "0.0.0.0/0"
+        IpProtocol: "tcp"
+        Description: "port"
+        FromPort: 22
+        ToPort: 22
+      - CidrIp: "0.0.0.0/0"
+        IpProtocol: "udp"
+        Description: "port"
+        FromPort: 53
+        ToPort: 53
+      - CidrIp: "0.0.0.0/0"
+        IpProtocol: "tcp"
+        Description: "port"
+        FromPort: 53
+        ToPort: 53
+      - CidrIp: "0.0.0.0/0"
+        IpProtocol: "tcp"
+        Description: "port"
+        FromPort: 3306
+        ToPort: 3306
+      - CidrIp: "0.0.0.0/0"
+        IpProtocol: "tcp"
+        Description: "port"
+        FromPort: 3389
+        ToPort: 3389
+      - CidrIp: "0.0.0.0/0"
+        IpProtocol: "tcp"
+        Description: "port"
+        FromPort: 443
+        ToPort: 443
+      - CidrIp: "0.0.0.0/0"
+        IpProtocol: "tcp"
+        Description: "port"
+        FromPort: 9200
+        ToPort: 9300
+      SecurityGroupEgress:
+      - CidrIp: "0.0.0.0/0"
+        IpProtocol: "-1"
+        FromPort: -1
+        ToPort: -1
+  EC2RouteG9:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::Route"
+    DeletionPolicy: "Retain"
+    Properties:
+      RouteTableId:
+        Ref: "EC2RouteTableBA"
+      DestinationCidrBlock:
+        Fn::GetAtt:
+        - "EC2VPC"
+        - "CidrBlock"
+      GatewayId: "local"
+      VpcEndpointId: "local"
+  EC2RouteXf:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::Route"
+    DeletionPolicy: "Retain"
+    Properties:
+      RouteTableId:
+        Ref: "EC2RouteTableGz"
+      DestinationCidrBlock:
+        Fn::GetAtt:
+        - "EC2VPC"
+        - "CidrBlock"
+      GatewayId: "local"
+      VpcEndpointId: "local"
+  EC2RouteGq:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::Route"
+    DeletionPolicy: "Retain"
+    Properties:
+      RouteTableId:
+        Ref: "EC2RouteTableBA"
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId:
+        Ref: "EC2InternetGateway"
+      VpcEndpointId: "igw-0386647eebbb08398"
+  S3BucketPolystudent3pylab4try2:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::S3::Bucket"
+    DeletionPolicy: "Retain"
+    Properties:
+      AbacStatus: "Disabled"
+      PublicAccessBlockConfiguration:
+        RestrictPublicBuckets: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        BlockPublicAcls: true
+      BucketName: "polystudent3-py-lab4-try2"
+      OwnershipControls:
+        Rules:
+        - ObjectOwnership: "BucketOwnerEnforced"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+        - BucketKeyEnabled: false
+          ServerSideEncryptionByDefault:
+            SSEAlgorithm: "aws:kms"
+            KMSMasterKeyID:
+              Fn::GetAtt:
+              - "KMSKey"
+              - "Arn"
+      VersioningConfiguration:
+        Status: "Enabled"
+      ReplicationConfiguration:
+        Role: "arn:aws:iam::514390778516:role/s3-replication-role"
+        Rules:
+        - Status: "Enabled"
+          Destination:
+            Bucket:
+              Fn::GetAtt:
+              - "S3BucketPolystudent3pylab4try2back"
+              - "Arn"
+            StorageClass: "STANDARD"
+          Id: "replicate-all"
+          DeleteMarkerReplication:
+            Status: "Enabled"
+          Filter:
+            Prefix: ""
+          Priority: 1
+  EC2RouteTableGz:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::RouteTable"
+    DeletionPolicy: "Retain"
+    Properties:
+      VpcId:
+        Ref: "EC2VPC"
+      Tags:
+      - Value: "polystudent-vpc-py Private Routes (AZ1)"
+        Key: "Name"
+  EC2SubnetSm:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::Subnet"
+    DeletionPolicy: "Retain"
+    Properties:
+      MapPublicIpOnLaunch: true
+      EnableDns64: false
+      VpcId:
+        Ref: "EC2VPC"
+      AvailabilityZoneId: "use1-az2"
+      PrivateDnsNameOptionsOnLaunch:
+        EnableResourceNameDnsARecord: false
+        HostnameType: "ip-name"
+        EnableResourceNameDnsAAAARecord: false
+      CidrBlock: "10.0.16.0/24"
+      Ipv6Native: false
+      Tags:
+      - Value: "polystudent-vpc-py Public Subnet (AZ2)"
+        Key: "Name"
+  S3BucketPolystudent3pylab4try2back:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::S3::Bucket"
+    DeletionPolicy: "Retain"
+    Properties:
+      AbacStatus: "Disabled"
+      PublicAccessBlockConfiguration:
+        RestrictPublicBuckets: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        BlockPublicAcls: true
+      BucketName: "polystudent3-py-lab4-try2-back"
+      VersioningConfiguration:
+        Status: "Enabled"
+      OwnershipControls:
+        Rules:
+        - ObjectOwnership: "BucketOwnerEnforced"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+        - BucketKeyEnabled: false
+          ServerSideEncryptionByDefault:
+            SSEAlgorithm: "aws:kms"
+            KMSMasterKeyID:
+              Fn::GetAtt:
+              - "KMSKey"
+              - "Arn"
+  CloudTrailTrailLab4S3modficationsTrail:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::CloudTrail::Trail"
+    DeletionPolicy: "Retain"
+    Properties:
+      IncludeGlobalServiceEvents: true
+      EventSelectors:
+      - IncludeManagementEvents: true
+        DataResources:
+        - Values:
+          - "arn:aws:s3:::polystudent3-py-lab4-try2/"
+          Type: "AWS::S3::Object"
+        ReadWriteType: "All"
+        ExcludeManagementEventSources: []
+      AggregationConfigurations: []
+      IsMultiRegionTrail: true
+      AdvancedEventSelectors: []
+      TrailName: "Lab4S3modficationsTrail"
+      S3BucketName:
+        Ref: "S3BucketPolystudent3pylab4try2"
+      EnableLogFileValidation: true
+      Tags: []
+      IsOrganizationTrail: false
+      InsightSelectors: []
+      IsLogging: true
+  EC2DHCPOptions:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::DHCPOptions"
+    DeletionPolicy: "Retain"
+    Properties:
+      DomainName: "ec2.internal"
+      DomainNameServers:
+      - "AmazonProvidedDNS"
+      Tags: []
+  EC2Route:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::Route"
+    DeletionPolicy: "Retain"
+    Properties:
+      NatGatewayId:
+        Ref: "EC2NatGateway"
+      RouteTableId:
+        Ref: "EC2RouteTable"
+      DestinationCidrBlock: "0.0.0.0/0"
+  S3BucketPolicyPolystudent3pylab4try2:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::S3::BucketPolicy"
+    DeletionPolicy: "Retain"
+    Properties:
+      Bucket:
+        Ref: "S3BucketPolystudent3pylab4try2"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Condition:
+            Bool:
+              aws:SecureTransport: "false"
+          Resource:
+          - "arn:aws:s3:::polystudent3-py-lab4-try2"
+          - "arn:aws:s3:::polystudent3-py-lab4-try2/*"
+          Action: "s3:*"
+          Effect: "Deny"
+          Principal: "*"
+          Sid: "DenyUnsecureConnections"
+        - Resource: "arn:aws:s3:::polystudent3-py-lab4-try2"
+          Action: "s3:GetBucketAcl"
+          Effect: "Allow"
+          Principal:
+            Service: "cloudtrail.amazonaws.com"
+          Sid: "AWSCloudTrailAclCheck20131101"
+        - Condition:
+            StringEquals:
+              s3:x-amz-acl: "bucket-owner-full-control"
+          Resource: "arn:aws:s3:::polystudent3-py-lab4-try2/AWSLogs/514390778516/*"
+          Action: "s3:PutObject"
+          Effect: "Allow"
+          Principal:
+            Service: "cloudtrail.amazonaws.com"
+          Sid: "AWSCloudTrailWrite20131101"
+  S3BucketPolicyPolystudent3pylab4try2back:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::S3::BucketPolicy"
+    DeletionPolicy: "Retain"
+    Properties:
+      Bucket:
+        Ref: "S3BucketPolystudent3pylab4try2back"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Condition:
+            Bool:
+              aws:SecureTransport: "false"
+          Resource:
+          - "arn:aws:s3:::polystudent3-py-lab4-try2-back"
+          - "arn:aws:s3:::polystudent3-py-lab4-try2-back/*"
+          Action: "s3:*"
+          Effect: "Deny"
+          Principal: "*"
+          Sid: "DenyUnsecureConnections"
+  KMSKey:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::KMS::Key"
+    DeletionPolicy: "Retain"
+    Properties:
+      Origin: "AWS_KMS"
+      MultiRegion: false
+      Description: ""
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+        - Resource: "*"
+          Action: "kms:*"
+          Effect: "Allow"
+          Principal:
+            AWS: "arn:aws:iam::514390778516:root"
+          Sid: "Enable IAM User Permissions"
+        - Resource: "*"
+          Action:
+          - "kms:Create*"
+          - "kms:Describe*"
+          - "kms:Enable*"
+          - "kms:List*"
+          - "kms:Put*"
+          - "kms:Update*"
+          - "kms:Revoke*"
+          - "kms:Disable*"
+          - "kms:Get*"
+          - "kms:Delete*"
+          - "kms:TagResource"
+          - "kms:UntagResource"
+          - "kms:ScheduleKeyDeletion"
+          - "kms:CancelKeyDeletion"
+          - "kms:RotateKeyOnDemand"
+          Effect: "Allow"
+          Principal:
+            AWS: "arn:aws:iam::514390778516:user/juicelab2"
+          Sid: "Allow access for Key Administrators"
+        - Resource: "*"
+          Action:
+          - "kms:Encrypt"
+          - "kms:Decrypt"
+          - "kms:ReEncrypt*"
+          - "kms:GenerateDataKey*"
+          - "kms:DescribeKey"
+          Effect: "Allow"
+          Principal:
+            AWS: "arn:aws:iam::514390778516:user/juicelab2"
+          Sid: "Allow use of the key"
+        - Condition:
+            Bool:
+              kms:GrantIsForAWSResource: "true"
+          Resource: "*"
+          Action:
+          - "kms:CreateGrant"
+          - "kms:ListGrants"
+          - "kms:RevokeGrant"
+          Effect: "Allow"
+          Principal:
+            AWS: "arn:aws:iam::514390778516:user/juicelab2"
+          Sid: "Allow attachment of persistent resources"
+        Id: "key-consolepolicy-3"
+      KeySpec: "SYMMETRIC_DEFAULT"
+      Enabled: true
+      EnableKeyRotation: false
+      KeyUsage: "ENCRYPT_DECRYPT"
+      Tags: []
+  EC2VPC:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::VPC"
+    DeletionPolicy: "Retain"
+    Properties:
+      CidrBlock: "10.0.0.0/16"
+      EnableDnsSupport: true
+      InstanceTenancy: "default"
+      EnableDnsHostnames: true
+      Tags:
+      - Value: "polystudent-vpc-py"
+        Key: "Name"
+  EC2VPCDHCPOptionsAssociation:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::VPCDHCPOptionsAssociation"
+    DeletionPolicy: "Retain"
+    Properties:
+      VpcId:
+        Ref: "EC2VPC"
+      DhcpOptionsId:
+        Ref: "EC2DHCPOptions"
+  EC2SubnetNetworkAclAssociationFZ:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::SubnetNetworkAclAssociation"
+    DeletionPolicy: "Retain"
+    Properties:
+      NetworkAclId:
+        Ref: "EC2NetworkAcl"
+      SubnetId:
+        Ref: "EC2SubnetJh"
+  EC2SubnetNetworkAclAssociationDX:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::SubnetNetworkAclAssociation"
+    DeletionPolicy: "Retain"
+    Properties:
+      NetworkAclId:
+        Ref: "EC2NetworkAcl"
+      SubnetId:
+        Ref: "EC2Subnet"
+  EC2SubnetRouteTableAssociationQq:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    DeletionPolicy: "Retain"
+    Properties:
+      RouteTableId:
+        Ref: "EC2RouteTableBA"
+      SubnetId:
+        Ref: "EC2SubnetSm"
+  EC2RouteTable:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::RouteTable"
+    DeletionPolicy: "Retain"
+    Properties:
+      VpcId:
+        Ref: "EC2VPC"
+      Tags:
+      - Value: "polystudent-vpc-py Private Routes (AZ2)"
+        Key: "Name"
+  EC2RouteXL:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::Route"
+    DeletionPolicy: "Retain"
+    Properties:
+      RouteTableId:
+        Ref: "EC2RouteTableOK"
+      DestinationCidrBlock:
+        Fn::GetAtt:
+        - "EC2VPC"
+        - "CidrBlock"
+      GatewayId: "local"
+      VpcEndpointId: "local"
+  EC2NatGatewayLt:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::NatGateway"
+    DeletionPolicy: "Retain"
+    Properties:
+      PrivateIpAddress: "10.0.0.28"
+      SubnetId:
+        Ref: "EC2Subnet"
+      ConnectivityType: "public"
+      VpcId: "vpc-0332b1503520157e4"
+      Tags: []
+      AllocationId:
+        Fn::GetAtt:
+        - "EC2EIP3423887149"
+        - "AllocationId"
+  EC2SubnetRouteTableAssociationGd:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    DeletionPolicy: "Retain"
+    Properties:
+      RouteTableId:
+        Ref: "EC2RouteTableGz"
+      SubnetId:
+        Ref: "EC2SubnetJh"
+  EC2InternetGateway:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::InternetGateway"
+    DeletionPolicy: "Retain"
+    Properties:
+      Tags:
+      - Value: "polystudent-vpc-py"
+        Key: "Name"
+  EC2SubnetRouteTableAssociation:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    DeletionPolicy: "Retain"
+    Properties:
+      RouteTableId:
+        Ref: "EC2RouteTable"
+      SubnetId:
+        Ref: "EC2SubnetC4"
+  EC2EIP3419433244:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::EIP"
+    DeletionPolicy: "Retain"
+    Properties:
+      PublicIpv4Pool: "amazon"
+      Domain: "vpc"
+      Tags: []
+      NetworkBorderGroup: "us-east-1"
+  EC2NetworkAcl:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::NetworkAcl"
+    DeletionPolicy: "Retain"
+    Properties:
+      VpcId:
+        Ref: "EC2VPC"
+      Tags: []
+  EC2RouteGV:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::Route"
+    DeletionPolicy: "Retain"
+    Properties:
+      NatGatewayId:
+        Ref: "EC2NatGatewayLt"
+      RouteTableId:
+        Ref: "EC2RouteTableGz"
+      DestinationCidrBlock: "0.0.0.0/0"
+  EC2RouteTableOK:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::EC2::RouteTable"
+    DeletionPolicy: "Retain"
+    Properties:
+      VpcId:
+        Ref: "EC2VPC"
