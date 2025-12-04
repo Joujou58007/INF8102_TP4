@@ -3,11 +3,17 @@ from botocore.exceptions import ClientError
 
 ENV_NAME = "polystudent-vpc-py"
 REGION = "us-east-1"
-ROLE_NAME = "LabRole"
+ROLE_NAME = "Lab_Role"
+ROLE_ARN = "arn:aws:iam::671081739219:role/LabRole"
 S3_BUCKET_FOR_FLOWLOGS = "polystudent3-py"
+AMI_ID = "ami-069e612f612be3a2b"
+INSTANCE_TYPE = "t3.micro"
+KEY_NAME = "polystudent-keypair"
+VOLUME_SIZE = 80
 
 ec2 = boto3.client('ec2', region_name=REGION)
 iam = boto3.client('iam')
+cw = boto3.client('cloudwatch', region_name=REGION)
 
 def wait_for_nat(nat_ids):
     ec2.get_waiter('nat_gateway_available').wait(NatGatewayIds=nat_ids)
@@ -111,13 +117,9 @@ rules = [
 
 ec2.authorize_security_group_ingress(GroupId=sg_id, IpPermissions=rules)
 
-# Partie de la question 3
+# Partie de la question 3.1
 # =======================
-print(vpc_id)
-
-vpc_id = "vpc-0991753fb9cb56685"
-
-response = ec2.create_flow_logs(
+ec2.create_flow_logs(
     ResourceType='VPC',
     ResourceIds=[vpc_id],
     TrafficType='REJECT',
@@ -125,7 +127,66 @@ response = ec2.create_flow_logs(
     LogDestination=f"arn:aws:s3:::{S3_BUCKET_FOR_FLOWLOGS}/vpc-flow-logs/"
 )
 
-print(response)
+# Partie de la question 3.2
 # =======================
+instances_config = [
+    ("Public-AZ1",  public1_id,  True),
+    ("Public-AZ2",  public2_id,  True),
+    ("Private-AZ1", private1_id, False),
+    ("Private-AZ2", private2_id, False),
+]
+
+instance_ids = []
+
+for name_suffix, subnet_id, public_ip in instances_config:
+    name = f"{ENV_NAME}-{name_suffix}"
+    print(f"Launching {name}...")
+    resp = ec2.run_instances(
+        ImageId=AMI_ID,
+        InstanceType=INSTANCE_TYPE,
+        MinCount=1, MaxCount=1,
+        KeyName=KEY_NAME,
+        IamInstanceProfile= {
+            'Name': ROLE_NAME
+            },
+        BlockDeviceMappings=[{
+            'DeviceName': '/dev/sda1',
+            'Ebs': {
+                'VolumeSize': VOLUME_SIZE,
+                'DeleteOnTermination': False,
+                'VolumeType': 'gp3'
+            }
+        }],
+        NetworkInterfaces=[{
+            'DeviceIndex': 0,
+            'SubnetId': subnet_id,
+            'Groups': [sg_id],
+            'AssociatePublicIpAddress': public_ip
+        }],
+        TagSpecifications=[{'ResourceType': 'instance', 'Tags': [{'Key': 'Name', 'Value': name}]}]
+    )
+    iid = resp['Instances'][0]['InstanceId']
+    instance_ids.append(iid)
+
+print("\nWaiting for instances to be running...")
+ec2.get_waiter('instance_running').wait(InstanceIds=instance_ids)
+
+for iid in instance_ids:
+    name = ec2.describe_tags(Filters=[{'Name': 'resource-id', 'Values': [iid]}, {'Name': 'key', 'Values': ['Name']}])['Tags'][0]['Value']
+    alarm_name = f"HighIngress-{iid}"
+
+    cw.put_metric_alarm(
+        AlarmName=alarm_name,
+        AlarmDescription=f"High ingress packets on {name}",
+        MetricName='NetworkPacketsIn',
+        Namespace='AWS/EC2',
+        Statistic='Average',
+        Dimensions=[{'Name': 'InstanceId', 'Value': iid}],
+        Period=300,
+        EvaluationPeriods=2,
+        Threshold=1000.0,
+        ComparisonOperator='GreaterThanOrEqualToThreshold',
+        TreatMissingData='notBreaching'
+    )
 
 print("DEPLOYMENT COMPLETE")
