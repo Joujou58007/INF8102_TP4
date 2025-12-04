@@ -1,0 +1,41 @@
+{
+    "AWSTemplateFormatVersion" : "2010-09-09",
+    "Description" : "S3 bucket",
+    "Resources" : {
+        "S3Bucket" : {
+            "DeletionPolicy" : "Retain",
+            "Type" : "AWS::S3::Bucket",
+            "Properties" : {
+                "BucketName" : "poolystudents3",
+                "AccessControl" : "Private",
+                "PublicAccessBlockConfiguration" : {
+                    "BlockPublicAcls" : true,
+                    "BlockPublicPolicy" : true,
+                    "IgnorePublicAcls" : true,
+                    "RestrictPublicBuckets" : true
+                },
+                "BucketEncryption" : {
+                    "ServerSideEncryptionConfiguration" : [
+                        {
+                            "ServerSideEncryptionByDefault" : {
+                                "SSEAlgorithm" : "aws:kms",
+                                "KMSMasterKeyID" : "arn:aws:kms:ca-central-1:671081739219:key/4be20024-83a3-4eb7-afce-7efcb439f488"
+                            }
+                        }
+                    ]
+                },
+                "VersioningConfiguration" : {
+                    "Status" : "Enabled"
+                }
+            }
+        }
+    },
+    "Outputs" : {
+        "S3Bucket" : {
+            "Description" : "Bucket Created! :)",
+            "Value" : {
+                "Ref": "S3Bucket"
+            }
+        }
+    }
+}
